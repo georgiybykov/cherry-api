@@ -37,11 +37,18 @@ jobs:
         id: check
         with:
           trigger: 'empty!'
+      - name: Get branch name
+        if: steps.check.outputs.triggered == 'true'
+        uses: xt0rted/pull-request-comment-branch@v1
+        id: comment-branch
+        with:
+          repo_token: ${{ github.token }}
       - name: Checkout
         if: steps.check.outputs.triggered == 'true'
         uses: actions/checkout@v2
         with:
           fetch-depth: 0 # otherwise, there would be errors pushing refs to the destination repository.
+          ref: ${{ steps.comment-branch.outputs.head_ref }}
       - name: Commit files
         if: steps.check.outputs.triggered == 'true'
         run: |
@@ -53,4 +60,4 @@ jobs:
         uses: ad-m/github-push-action@master
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          branch: ${{ github.ref }}
+          branch: ${{ steps.comment-branch.outputs.head_ref }}
